@@ -1,0 +1,3 @@
+RewriteEngine  on
+RewriteRule "user/(.+).xml$"  "feed.php?username=$1" [PT]
+RewriteRule "user/(.+)"  "user.php?username=$1" [PT,QSA]

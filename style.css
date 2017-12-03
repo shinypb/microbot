@@ -1,0 +1,38 @@
+html {
+	background: #eee url("escheresque/escheresque.png");
+	font-family: "Helvetica Neue";
+	font-size: 18px;
+	height: 100%;
+}
+
+body {
+	min-height: 100%;
+	margin: 1rem;
+	padding-bottom: 2rem;
+}
+
+article {
+	background: #fff;
+	border-radius: 0.25rem;
+	margin-top: 1rem;
+	margin: 1rem auto 0 auto;
+	padding: 0.5rem;
+	max-width: 50%;
+}
+
+article:first-child {
+	margin-top: 0;
+}
+
+article footer {
+	color: #444;
+	font-size: 0.9rem;
+}
+
+body > footer {
+	margin-bottom: 0.1rem;
+	margin-top: 1rem;
+	text-align: center;
+	font-size: 0.8rem;
+	width: 100%;
+}
