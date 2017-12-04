@@ -1,3 +1,4 @@
 RewriteEngine  on
 RewriteRule "user/(.+).xml$"  "feed.php?username=$1" [PT]
-RewriteRule "user/(.+)"  "user.php?username=$1" [PT,QSA]
+RewriteRule "user/(.+)/(.+)$"  "permalink.php?username=$1&ts=$2" [PT,QSA]
+RewriteRule "user/(.+)$"  "user.php?username=$1" [PT,QSA]

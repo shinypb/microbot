@@ -4,7 +4,7 @@ require 'init.php';
 require 'conf.php';
 require 'libmicrobot.php';
 
-$username = strtolower($_GET['username'] ?: 'shinypb');
+$username = rtrim(strtolower($_GET['username'] ?: 'shinypb'), '/');
 
 $posts = microbot_get_posts_by_username(SLACK_API_TOKEN, $username);
 if ($posts === FALSE) {
@@ -26,7 +26,7 @@ header('content-type: text/html');
 		<?php foreach ($posts as $post) { ?>
 			<article>
 				<?php echo microbot_format_text_as_html($post['text']); ?>
-				<footer><?php echo htmlentities(microbot_format_timestamp($post['ts'])); ?></footer>
+				<footer><a href="<?php echo htmlentities(microbot_format_permalink($username, $post['ts'])); ?>"><?php echo htmlentities(microbot_format_timestamp($post['ts'])); ?></a></footer>
 			</article>
 		<?php } ?>
 		<footer>&lt;3 "escheresque" background image from subtlepatterns.com</footer>

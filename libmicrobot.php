@@ -29,22 +29,28 @@ function microbot_get_all_users($token) {
 }
 
 function microbot_get_posts_by_username($token, $username) {
-	$slack = new Slack($token);
+	$im = _slack_get_im_by_username($token, $username);
+	if (!$im) return false;
 
-	$user = _get_slack_user_by_username($token, $username);
+	return microbot_get_posts($token, $im['id'], $im['user']);
+}
+
+function _slack_get_im_by_username($token, $username) {
+	$slack = new Slack($token);
+	$user = _slack_get_user_by_username($token, $username);
 	$resp = $slack->call('im.list', []);
 	if (!$resp['ok']) return false;
 	
 	foreach ($resp['ims'] as $im) {
 		if ($im['user'] === $user['id']) {
-			return microbot_get_posts($token, $im['id'], $im['user']);
+			return $im;
 		}
 	}
-	
+
 	return false;
 }
 
-function _get_slack_user_by_username($token, $username) {
+function _slack_get_user_by_username($token, $username) {
 	if (isset($GLOBALS['slack_users_by_username'][$username])) {
 		return $GLOBALS['slack_users_by_username'][$username];
 	}
@@ -76,13 +82,46 @@ function microbot_get_posts($token, $source_channel, $source_user) {
 		if ($msg['type'] !== 'message') continue; // TODO: add support for images
 		if ($msg['user'] !== $source_user) continue;
 
-		$posts[] = [
-			'text' => $msg['text'],
-			'ts' => intval($msg['ts']),
-		];
+		$posts[] = microbot_format_msg_as_post($msg);
 	}
 
 	return $posts;
+}
+
+function microbot_format_msg_as_post($msg) {
+	return [
+		'text' => $msg['text'],
+		'ts' => intval($msg['ts']),
+	];
+}
+
+function microbot_get_post_by_username($token, $username, $ts) {
+	$im = _slack_get_im_by_username($token, $username);
+	if (!$im) return false;
+
+	return microbot_get_post($token, $im['id'], $im['user'], $ts);
+}
+
+function microbot_get_post($token, $source_channel, $source_user, $ts) {
+	$slack = new Slack($token);
+	$resp = $slack->call('conversations.history', [
+		'channel' => $source_channel,
+		'oldest' => ($ts - 1),
+		'latest' => ($ts + 1)
+	]);
+	if (!$resp['ok']) return false;
+	
+	$posts = [];
+	foreach ($resp['messages'] as $msg) {
+		if ($msg['type'] !== 'message') continue; // TODO: add support for images
+		if ($msg['user'] !== $source_user) continue;
+		if (intval($msg['ts']) !== intval($ts)) continue;
+
+		return microbot_format_msg_as_post($msg);
+	}
+
+	return $posts;
+
 }
 
 function microbot_format_text_as_html($text) {
@@ -102,6 +141,6 @@ function microbot_format_timestamp($ts) {
 }
 
 function microbot_get_user_description($token, $username) {
-	return _get_slack_user_by_username($token, $username)['profile']['title'];
+	return _slack_get_user_by_username($token, $username)['profile']['title'];
 }
 
