@@ -94,7 +94,7 @@ function microbot_format_text_as_html($text) {
 }
 
 function microbot_format_permalink($username, $ts = NULL) {
-	return "https://whimsicalifornia.com/micro/user/{$username}" . ($ts ? "/{$ts}" : "");
+	return "https://whimsicalifornia.com/microbot/user/{$username}" . ($ts ? "/{$ts}" : "");
 }
 
 function microbot_format_timestamp($ts) {
