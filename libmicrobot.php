@@ -76,23 +76,36 @@ function microbot_get_posts($token, $source_channel, $source_user) {
 		'channel' => $source_channel,
 	]);
 	if (!$resp['ok']) return false;
-	
+
 	$posts = [];
 	foreach ($resp['messages'] as $msg) {
-		if ($msg['type'] !== 'message') continue; // TODO: add support for images
+		if ($msg['type'] !== 'message') continue;
+        if ($msg['subtype'] && $msg['subtype'] !== 'file_share') continue;
 		if ($msg['user'] !== $source_user) continue;
 
-		$posts[] = microbot_format_msg_as_post($msg);
+    	$posts[] = microbot_format_msg_as_post($msg);
 	}
 
 	return $posts;
 }
-
+// 
 function microbot_format_msg_as_post($msg) {
-	return [
-		'text' => $msg['text'],
+	$output = [
+		'text' => $msg['file'] ? $msg['file']['title'] : $msg['text'],
 		'ts' => intval($msg['ts']),
 	];
+
+    if ($msg['file']) {
+        $output['media_url_private'] = $msg['file']['url_private'];
+        $output['media_type'] = $msg['file']['mimetype'];
+    }
+
+    return $output;
+}
+
+function microbot_format_image_link($username, $msg) {
+    $url = microbot_format_permalink($username, $msg['ts'], true);
+    return "<a class=\"image\" href=\"" . htmlentities($url) . "\"><img src=\"" . htmlentities($url) . "\" alt=\"" . htmlentities($msg['text']) . "\"></a>";
 }
 
 function microbot_get_post_by_username($token, $username, $ts) {
@@ -113,8 +126,8 @@ function microbot_get_post($token, $source_channel, $source_user, $ts) {
 	
 	$posts = [];
 	foreach ($resp['messages'] as $msg) {
-		if ($msg['type'] !== 'message') continue; // TODO: add support for images
 		if ($msg['user'] !== $source_user) continue;
+		if ($msg['type'] !== 'message') continue; // TODO: add support for images
 		if (intval($msg['ts']) !== intval($ts)) continue;
 
 		return microbot_format_msg_as_post($msg);
@@ -125,15 +138,17 @@ function microbot_get_post($token, $source_channel, $source_user, $ts) {
 }
 
 function microbot_format_text_as_html($text) {
-	return preg_replace_callback("/<(https?:\/\/.+)>/", function($matches) {
+	$text = preg_replace_callback("/<(https?:\/\/.+)>/", function($matches) {
 		$url = $matches[1];
 		$url_pretty = rtrim(rtrim(explode("://", $url, 2)[1], "?"), "/");
 		return "<a href=\"" . htmlentities($url) . "\">" . htmlentities($url_pretty) . "</a>";
 	}, $text);
+
+    return nl2br(trim($text));
 }
 
-function microbot_format_permalink($username, $ts = NULL) {
-	return "https://whimsicalifornia.com/microbot/user/{$username}" . ($ts ? "/{$ts}" : "");
+function microbot_format_permalink($username, $ts = NULL, $is_media_link = false) {
+	return "https://whimsicalifornia.com/microbot/user/{$username}" . ($ts ? "/{$ts}" : "") . ($is_media_link ? "/media" : "");
 }
 
 function microbot_format_timestamp($ts) {

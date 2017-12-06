@@ -1,5 +1,3 @@
 <?php
 
 define('SLACK_API_TOKEN', 'xoxb-280327122272-eg6Kc9t8ALhNFInsVdcU5dA7');
-define('SOURCE_CHANNEL', 'D89S0LCJ2');
-define('SOURCE_USER', 'U02GA6GAE');

@@ -20,6 +20,14 @@ article {
 	max-width: 50%;
 }
 
+article a.image {
+    display: block;
+}
+
+article a.image img {
+    max-width: 100%;
+}
+
 article:first-child {
 	margin-top: 0;
 }

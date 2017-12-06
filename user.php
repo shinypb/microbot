@@ -26,6 +26,7 @@ header('content-type: text/html');
 		<?php foreach ($posts as $post) { ?>
 			<article>
 				<?php echo microbot_format_text_as_html($post['text']); ?>
+                <?php if ($post['media_type']) echo microbot_format_image_link($username, $post); ?>
 				<footer><a href="<?php echo htmlentities(microbot_format_permalink($username, $post['ts'])); ?>"><?php echo htmlentities(microbot_format_timestamp($post['ts'])); ?></a></footer>
 			</article>
 		<?php } ?>
