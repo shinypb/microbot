@@ -32,6 +32,7 @@ $description = microbot_get_user_description(SLACK_API_TOKEN, $username);
             <title></title>
             <description><![CDATA[
                 <?php echo microbot_format_text_as_html($post['text']); ?>
+                <?php if ($post['media_type']) echo "<br>" . microbot_format_image_link($username, $post); ?>
             ]]></description>
             <pubDate><?php emit(date('r', $post['ts'])); ?></pubDate>
             <guid isPermalink="true"><?php emit(microbot_format_permalink($username, $post['ts'])); ?></guid>
