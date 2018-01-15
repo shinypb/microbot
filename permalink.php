@@ -39,6 +39,11 @@ if ($_GET['attachment']) {
     exit;
 }
 
+function emit($str) {
+	echo htmlspecialchars($str, ENT_HTML5, 'UTF-8');
+}
+
+
 header('content-type: text/html');
 
 ?><!DOCTYPE html>
@@ -47,6 +52,13 @@ header('content-type: text/html');
 		<title>@<?php echo htmlentities($username); ?>'s microblog</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" href="/microbot/style.css">
+        <meta property="og:url"                content="<?php emit(microbot_format_permalink($username, $post['ts'])); ?>">
+        <meta property="og:type"               content="article">
+        <meta property="og:title"        content="<?php emit($post[text]);?>">
+        <meta property="og:description" content="@<?php emit($username); ?>'s microblog">
+        <?php if ($post['media_type']) { ?>
+        <meta property="og:image"              content="<?php echo microbot_format_permalink($username, $msg['ts'], true); ?>">
+        <?php } ?>
 	</head>
 	<body>
 		<article>

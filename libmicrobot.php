@@ -96,7 +96,7 @@ function microbot_format_msg_as_post($msg) {
 	];
 
     if ($msg['file']) {
-        $output['media_url_private'] = $msg['file']['url_private'];
+        $output['media_url_private'] = $msg['file']['thumb_1024'];
         $output['media_type'] = $msg['file']['mimetype'];
     }
 
@@ -145,6 +145,15 @@ function microbot_format_text_as_html($text) {
 	}, $text);
 
     return nl2br(trim($text));
+}
+
+function microbot_format_text_as_plain_text($text) {
+	$text = preg_replace_callback("/<(https?:\/\/.+)>/", function($matches) {
+		$url = $matches[1];
+        return $url;
+	}, $text);
+
+    return trim($text);
 }
 
 function microbot_format_permalink($username, $ts = NULL, $is_media_link = false) {
