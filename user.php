@@ -21,6 +21,7 @@ header('content-type: text/html');
 		<title>@<?php echo htmlentities($username); ?>'s microblog</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" href="/microbot/style.css">
+        <?php if ($username === 'shinypb') { ?><link href="https://micro.blog/shinypb" rel="me"><?php } ?>
 	</head>
 	<body>
 		<?php foreach ($posts as $post) { ?>
