@@ -98,6 +98,8 @@ function microbot_format_msg_as_post($msg) {
     if ($msg['file']) {
         $output['media_url_private'] = $msg['file']['thumb_1024'];
         $output['media_type'] = $msg['file']['mimetype'];
+        $output['media_h'] = $msg['file']['thumb_1024_h'];
+        $output['media_w'] = $msg['file']['thumb_1024_w'];
     }
 
     return $output;

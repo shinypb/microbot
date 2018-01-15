@@ -58,6 +58,8 @@ header('content-type: text/html');
         <meta property="og:description" content="@<?php emit($username); ?>'s microblog">
         <?php if ($post['media_type']) { ?>
         <meta property="og:image"              content="<?php echo microbot_format_permalink($username, $msg['ts'], true); ?>">
+        <meta property="og:image:width" content="<?php emit($post['media_w']); ?>">
+        <meta property="og:image:height" content="<?php emit($post['media_h']); ?>">
         <?php } ?>
 	</head>
 	<body>
