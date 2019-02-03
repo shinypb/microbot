@@ -37,6 +37,15 @@ echo '<?xml version="1.0" encoding="UTF-8" ?>';
                 <?php echo microbot_format_text_as_html($post['text']); ?>
                 <?php if ($post['media_type']) echo "<br>" . microbot_format_image_link($username, $post); ?>
             ]]></description>
+            <?php if ($post['media_type']) { ?>
+                <media:content 
+                    xmlns:media="http://search.yahoo.com/mrss/" 
+                    url="<?php emit(microbot_format_permalink($username, $post['ts'], true)); ?>" 
+                    medium="image" 
+                    type="<?php emit($post['media_type']); ?>" 
+                    width="<?php emit($post['media_w']); ?>" 
+                    height="<?php emit($post['media_h']); ?>" />
+            <?php } ?>
             <pubDate><?php emit(date('r', $post['ts'])); ?></pubDate>
             <guid isPermalink="true"><?php emit(microbot_format_permalink($username, $post['ts'])); ?></guid>
             <link><?php emit(microbot_format_permalink($username, $post['ts'])); ?></link>

@@ -159,7 +159,7 @@ function microbot_format_text_as_plain_text($text) {
 }
 
 function microbot_format_permalink($username, $ts = NULL, $is_media_link = false) {
-	return "https://whimsicalifornia.com/microbot/user/{$username}" . ($ts ? "/{$ts}" : "") . ($is_media_link ? "/media" : "");
+	return "https://whimsicalifornia.com/microbot/user/{$username}" . ($ts ? "/{$ts}" : "") . ($is_media_link ? "/media.jpg" : "");
 }
 
 function microbot_format_timestamp($ts) {
