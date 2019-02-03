@@ -3,6 +3,7 @@
 require 'slack.php';
 
 $GLOBALS['slack_users_by_username'] = [];
+define(MICROBOT_TMP_DIR, '/home/shinyplasticbag/.tmp');
 
 function microbot_get_all_users($token) {
 	$slack = new Slack($token);
@@ -74,6 +75,7 @@ function microbot_get_posts($token, $source_channel, $source_user) {
 	$slack = new Slack($token);
 	$resp = $slack->call('conversations.history', [
 		'channel' => $source_channel,
+        'limit' => 20
 	]);
 	if (!$resp['ok']) return false;
 
@@ -118,12 +120,19 @@ function microbot_get_post_by_username($token, $username, $ts) {
 }
 
 function microbot_get_post($token, $source_channel, $source_user, $ts) {
-	$slack = new Slack($token);
-	$resp = $slack->call('conversations.history', [
-		'channel' => $source_channel,
-		'oldest' => ($ts - 1),
-		'latest' => ($ts + 1)
-	]);
+    $cache_key = __FUNCTION__ . '-' . sha1(implode('-', [$token, $source_channel, $source_user, $ts]));
+    $cache_filename = MICROBOT_TMP_DIR . '/' . $cache_key;
+    if (file_exists($cache_filename)) {
+        $resp = json_decode(file_get_contents($cache_filename), true);
+    } else {
+        $slack = new Slack($token);
+        $resp = $slack->call('conversations.history', [
+            'channel' => $source_channel,
+            'oldest' => ($ts - 1),
+            'latest' => ($ts + 1)
+        ]);
+        file_put_contents($cache_filename, json_encode($resp));
+    }
 	if (!$resp['ok']) return false;
 	
 	$posts = [];
