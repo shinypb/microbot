@@ -4,7 +4,7 @@ require 'init.php';
 require 'conf.php';
 require 'libmicrobot.php';
 
-$username = strtolower($_GET['username'] ?: 'shinypb');
+$username = strtolower($_GET['username']);
 $ts = intval($_GET['ts']);
 
 if (!$username || !$ts) {

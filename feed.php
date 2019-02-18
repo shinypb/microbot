@@ -4,7 +4,7 @@ require 'init.php';
 require 'conf.php';
 require 'libmicrobot.php';
 
-$username = strtolower($_GET['username'] ?: 'shinypb');
+$username = strtolower($_GET['username']);
 
 $posts = microbot_get_posts_by_username(SLACK_API_TOKEN, $username);
 if ($posts === FALSE) {
