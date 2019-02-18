@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#!/usr/bin/env bash
+set -xeuo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+date
+
+scripts/sync
+
+osascript -e "display notification \"Sync completed $(date)\" with title \"microbot sync\""
+
