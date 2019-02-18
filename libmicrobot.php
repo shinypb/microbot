@@ -330,13 +330,12 @@ function _slack_get_user_by_username($token, $username) {
 
     $user = null;
     foreach($resp['members'] as $member) {
-        if ($member['profile']['display_name'] === $username) {
-            // TODO: improve this memoization; it only remembers users we ask for, rather than all of the users returned in the users.list response,
-            $GLOBALS['slack_users_by_username'][$username] = $member;
-            return $member;
-        }
+        $member_username = $member['profile']['display_name'];
+        $GLOBALS['slack_users_by_username'][$member_username] = $member;
     }
 
-    $GLOBALS['slack_users_by_username'][$username] = null;
-    return null;
+    if (!isset($GLOBALS['slack_users_by_username'][$username])) {
+        $GLOBALS['slack_users_by_username'][$username] = null;
+    }
+    return $GLOBALS['slack_users_by_username'][$username];
 }
