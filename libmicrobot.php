@@ -1,10 +1,22 @@
 <?php
 
+// A simple object-oriented wrapper around the Slack API
 require 'slack.php';
 
+// A mapping from username to Slack member object
 $GLOBALS['slack_users_by_username'] = [];
+
+// Where to store temporary files
 define(MICROBOT_TMP_DIR, '/home/shinyplasticbag/.tmp');
 
+// How many posts to fetch and display on member timelines
+define(MICROBOT_POST_COUNT, 20);
+
+/**
+ * Returns the list of all members on this Slack team that have microbot posts.
+ * @param string $token - Slack API token.
+ * @return string[] - array of usernames
+*/
 function microbot_get_all_users($token) {
 	$slack = new Slack($token);
 	$resp = $slack->call('users.list', []);
@@ -25,92 +37,48 @@ function microbot_get_all_users($token) {
 		if ($im['user'] === 'USLACKBOT') continue;
 		$users[] = $users_by_id[$im['user']];
 	}
-	
+
 	return $users;
 }
 
-function microbot_get_posts_by_username($token, $username) {
-	$im = _slack_get_im_by_username($token, $username);
-	if (!$im) return false;
-
-	return microbot_get_posts($token, $im['id'], $im['user']);
-}
-
-function _slack_get_im_by_username($token, $username) {
-	$slack = new Slack($token);
-	$user = _slack_get_user_by_username($token, $username);
-	$resp = $slack->call('im.list', []);
-	if (!$resp['ok']) return false;
-	
-	foreach ($resp['ims'] as $im) {
-		if ($im['user'] === $user['id']) {
-			return $im;
-		}
-	}
-
-	return false;
-}
-
-function _slack_get_user_by_username($token, $username) {
-	if (isset($GLOBALS['slack_users_by_username'][$username])) {
-		return $GLOBALS['slack_users_by_username'][$username];
-	}
-
-	$slack = new Slack($token);
-	$resp = $slack->call('users.list', []);
-	if (!$resp['ok']) return false;
-
-	$user = null;
-	foreach($resp['members'] as $member) {
-		if ($member['profile']['display_name'] === $username) {
-			$GLOBALS['slack_users_by_username'][$username] = $member;
-			return $member;
-		}
-	}
-
-	return false;
-}
-
+/**
+ * Returns the MICROBOT_POST_COUNT most recent posts from the given user's microbot timeline.
+ * @param string $token - Slack API token
+ * @param string $source_channel - channel ID for @microbot user's DM with $source_user
+ * @param string $source_user - user ID of user we are getting posts from
+ * @return object[] - microbot post objects
+ */
 function microbot_get_posts($token, $source_channel, $source_user) {
 	$slack = new Slack($token);
 	$resp = $slack->call('conversations.history', [
 		'channel' => $source_channel,
-        'limit' => 20
+		'limit' => MICROBOT_POST_COUNT,
 	]);
 	if (!$resp['ok']) return false;
 
 	$posts = [];
 	foreach ($resp['messages'] as $msg) {
 		if ($msg['type'] !== 'message') continue;
-        if ($msg['subtype'] && $msg['subtype'] !== 'file_share') continue;
+		if ($msg['subtype'] && $msg['subtype'] !== 'file_share') continue;
 		if ($msg['user'] !== $source_user) continue;
 
-    	$posts[] = microbot_format_msg_as_post($msg);
+		$posts[] = microbot_format_msg_as_post($msg);
 	}
 
 	return $posts;
 }
-// 
-function microbot_format_msg_as_post($msg) {
-	$output = [
-		'text' => $msg['file'] ? $msg['file']['title'] : $msg['text'],
-		'ts' => intval($msg['ts']),
-	];
 
-    if ($msg['files'] && count($msg['files']) === 1) {
-		$file = $msg['files'][0];
-        $output['media_url_private'] = $file['thumb_1024'];
-        $output['media_type'] = $file['mimetype'];
-        $output['media_h'] = $file['thumb_1024_h'];
-        $output['media_w'] = $file['thumb_1024_w'];
-    }
+/**
+ * Returns the MICROBOT_POST_COUNT most recent posts for the give user's microbot timeline.
+ * @param string $token - Slack API token
+ * @param string $username - Name of user to get microbot posts for
+ * @return object[] - microbot post objects
+*/
+function microbot_get_posts_by_username($token, $username) {
+	$im = _slack_get_im_by_username($token, $username);
+	if (!$im) return false;
 
-    return $output;
-}
-
-function microbot_format_image_link($username, $msg) {
-    $url = microbot_format_permalink($username, $msg['ts'], true);
-    return "<a class=\"image\" href=\"" . htmlentities($url) . "\"><img style=\"max-width: 100%;\" src=\"" . htmlentities($url) . "\" alt=\"" . htmlentities($msg['text']) . "\"></a>";
+	return microbot_get_posts($token, $im['id'], $im['user']);
 }
 
 function microbot_get_post_by_username($token, $username, $ts) {
@@ -135,7 +103,7 @@ function microbot_get_post($token, $source_channel, $source_user, $ts) {
         file_put_contents($cache_filename, json_encode($resp));
     }
 	if (!$resp['ok']) return false;
-	
+
 	$posts = [];
 	foreach ($resp['messages'] as $msg) {
 		if ($msg['user'] !== $source_user) continue;
@@ -147,6 +115,28 @@ function microbot_get_post($token, $source_channel, $source_user, $ts) {
 
 	return $posts;
 
+}
+
+function microbot_format_msg_as_post($msg) {
+	$output = [
+		'text' => $msg['file'] ? $msg['file']['title'] : $msg['text'],
+		'ts' => intval($msg['ts']),
+	];
+
+    if ($msg['files'] && count($msg['files']) === 1) {
+		$file = $msg['files'][0];
+        $output['media_url_private'] = $file['thumb_1024'];
+        $output['media_type'] = $file['mimetype'];
+        $output['media_h'] = $file['thumb_1024_h'];
+        $output['media_w'] = $file['thumb_1024_w'];
+    }
+
+    return $output;
+}
+
+function microbot_format_image_link($username, $msg) {
+    $url = microbot_format_permalink($username, $msg['ts'], true);
+    return "<a class=\"image\" href=\"" . htmlentities($url) . "\"><img style=\"max-width: 100%;\" src=\"" . htmlentities($url) . "\" alt=\"" . htmlentities($msg['text']) . "\"></a>";
 }
 
 function microbot_format_text_as_html($text) {
@@ -180,3 +170,37 @@ function microbot_get_user_description($token, $username) {
 	return _slack_get_user_by_username($token, $username)['profile']['title'];
 }
 
+function _slack_get_im_by_username($token, $username) {
+	$slack = new Slack($token);
+	$user = _slack_get_user_by_username($token, $username);
+	$resp = $slack->call('im.list', []);
+	if (!$resp['ok']) return false;
+
+	foreach ($resp['ims'] as $im) {
+		if ($im['user'] === $user['id']) {
+			return $im;
+		}
+	}
+
+	return false;
+}
+
+function _slack_get_user_by_username($token, $username) {
+	if (isset($GLOBALS['slack_users_by_username'][$username])) {
+		return $GLOBALS['slack_users_by_username'][$username];
+	}
+
+	$slack = new Slack($token);
+	$resp = $slack->call('users.list', []);
+	if (!$resp['ok']) return false;
+
+	$user = null;
+	foreach($resp['members'] as $member) {
+		if ($member['profile']['display_name'] === $username) {
+			$GLOBALS['slack_users_by_username'][$username] = $member;
+			return $member;
+		}
+	}
+
+	return false;
+}
