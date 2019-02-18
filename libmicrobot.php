@@ -97,11 +97,12 @@ function microbot_format_msg_as_post($msg) {
 		'ts' => intval($msg['ts']),
 	];
 
-    if ($msg['file']) {
-        $output['media_url_private'] = $msg['file']['thumb_1024'];
-        $output['media_type'] = $msg['file']['mimetype'];
-        $output['media_h'] = $msg['file']['thumb_1024_h'];
-        $output['media_w'] = $msg['file']['thumb_1024_w'];
+    if ($msg['files'] && count($msg['files']) === 1) {
+		$file = $msg['files'][0];
+        $output['media_url_private'] = $file['thumb_1024'];
+        $output['media_type'] = $file['mimetype'];
+        $output['media_h'] = $file['thumb_1024_h'];
+        $output['media_w'] = $file['thumb_1024_w'];
     }
 
     return $output;
