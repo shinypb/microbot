@@ -15,6 +15,9 @@ define('MICROBOT_POST_COUNT', 20);
 // Base URL to use when generating URLs; do not include a trailing slash
 define('MICROBOT_BASE_URL', 'https://whimsicalifornia.com/microbot');
 
+// User-facing name of this microbot instance
+define('MICROBOT_INSTANCE_NAME', 'Whimsicalifornia');
+
 /**
  * Returns the list of all members on this Slack team that have microbot posts.
  * @param string $token - Slack API token.
@@ -210,6 +213,41 @@ function microbot_format_permalink($username, $ts = NULL, $is_media_link = false
 */
 function microbot_format_timestamp($ts) {
     return date('F jS, Y \a\t g:i a', $ts);
+}
+
+/**
+ * Returns the user profile URL for the given user.
+ * @param string $username
+ * @param boolean $is_feed_url - whether to generate a URL for their RSS feed, rather than their profile page
+ * @return string
+*/
+function microbot_format_user_profile_link($username, $is_feed_url) {
+    $username_escaped = htmlentities($username);
+    $suffix = $is_feed_url ? ".xml" : "";
+    return MICROBOT_BASE_URL . "/user/{$username_escaped}{$suffix}";
+}
+
+/**
+ * Returns the microbot user with the given username.
+ * @param string $token - Slack API token
+ * @param string $username - user to retrieve
+ * @return object|null microbot user object
+*/
+function microbot_get_user($token, $username) {
+    $user = _slack_get_user_by_username($token, $username);
+    if (!$user) return null;
+
+    return _microbot_format_slack_user_as_microbot_user($user);
+}
+
+function _microbot_format_slack_user_as_microbot_user($user) {
+    return [
+        'name' => $user['name'],
+        'description' => $user['profile']['title'],
+        'image' => $user['profile']['image_192'],
+        'image_w' => 192,
+        'image_h' => 192,
+    ];
 }
 
 /**

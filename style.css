@@ -25,6 +25,7 @@ article a.image {
 }
 
 article a.image img {
+	border-radius: 0.25em;
 	height: auto;
     max-width: 100%;
 }
@@ -49,4 +50,26 @@ body > footer {
 	text-align: center;
 	font-size: 0.8rem;
 	width: 100%;
+}
+
+article.user_profile img {
+	border-radius: 0.25em;
+	float: right;
+	margin-left: 0.5em;
+	margin-bottom: 0.5em;
+	height: 64px;
+	width: 64px;
+}
+
+article.user_profile h1 {
+	margin-top: 0;
+	font-size: 1em;
+	font-weight: bold;
+}
+
+article.user_profile h2 {
+	margin-bottom: 0;
+	margin-top: 0;
+	font-size: 1em;
+	font-weight: normal;
 }
