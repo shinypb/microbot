@@ -3,3 +3,5 @@ RewriteRule "user/(.+).xml$"  "feed.php?username=$1" [PT]
 RewriteRule "user/(.+)/(.+)/media.jpg$"  "permalink.php?username=$1&ts=$2&attachment=1" [PT,QSA]
 RewriteRule "user/(.+)/(.+)$"  "permalink.php?username=$1&ts=$2" [PT,QSA]
 RewriteRule "user/(.+)$"  "user.php?username=$1" [PT,QSA]
+
+RewriteRule conf.php 404
