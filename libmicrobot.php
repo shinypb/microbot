@@ -18,6 +18,11 @@ define('MICROBOT_BASE_URL', 'https://whimsicalifornia.com/microbot');
 // User-facing name of this microbot instance
 define('MICROBOT_INSTANCE_NAME', 'Whimsicalifornia');
 
+// Constants for cache TTLs
+define('MICROBOT_TTL_1_MINUTE', 60);
+define('MICROBOT_TTL_1_HOUR', 60 * 60);
+define('MICROBOT_TTL_1_DAY', 24 * 60 * 60);
+
 /**
  * Returns the list of all members on this Slack team that have microbot posts.
  * @param string $token - Slack API token.
@@ -25,7 +30,7 @@ define('MICROBOT_INSTANCE_NAME', 'Whimsicalifornia');
  */
 function microbot_get_all_users($token) {
     $slack = new Slack($token);
-    $resp = $slack->call('users.list', []);
+    $resp = _slack_call_api_cached($slack, 'users.list', [], MICROBOT_TTL_1_HOUR);
     if (!$resp['ok']) return false;
 
     // Build mapping of user id → username
@@ -35,7 +40,7 @@ function microbot_get_all_users($token) {
     }
 
     // Build list of users with microbot IMs
-    $resp = $slack->call('im.list', []);
+    $resp = _slack_call_api_cached($slack, 'im.list', [], MICROBOT_TTL_1_HOUR);
     if (!$resp['ok']) return false;
 
     $users = [];
@@ -66,10 +71,10 @@ function microbot_get_user_description($token, $username) {
  */
 function microbot_get_posts($token, $source_channel, $source_user) {
     $slack = new Slack($token);
-    $resp = $slack->call('conversations.history', [
+    $resp = _slack_call_api_cached($slack, 'conversations.history', [
         'channel' => $source_channel,
         'limit' => MICROBOT_POST_COUNT,
-    ]);
+    ], MICROBOT_TTL_1_MINUTE);
     if (!$resp['ok']) return false;
 
     $posts = [];
@@ -106,20 +111,12 @@ function microbot_get_posts_by_username($token, $username) {
  * @return object - microbot post object, if it exists, or false if an error occurs or the post does not exist
  */
 function microbot_get_single_post($token, $source_channel, $source_user, $ts) {
-    // TODO: rather than bespoke caching in this one method, move caching to somewhere central
-    $cache_key = __FUNCTION__ . '-' . sha1(implode('-', [$token, $source_channel, $source_user, $ts]));
-    $cache_filename = MICROBOT_TMP_DIR . '/' . $cache_key;
-    if (file_exists($cache_filename)) {
-        $resp = json_decode(file_get_contents($cache_filename), true);
-    } else {
-        $slack = new Slack($token);
-        $resp = $slack->call('conversations.history', [
-            'channel' => $source_channel,
-            'oldest' => ($ts - 1),
-            'latest' => ($ts + 1)
-        ]);
-        file_put_contents($cache_filename, json_encode($resp));
-    }
+    $slack = new Slack($token);
+    $resp = _slack_call_api_cached($slack, 'conversations.history', [
+        'channel' => $source_channel,
+        'oldest' => ($ts - 1),
+        'latest' => ($ts + 1)
+    ], MICROBOT_TTL_1_MINUTE);
     if (!$resp['ok']) return null;
 
     foreach ($resp['messages'] as $msg) {
@@ -282,7 +279,7 @@ function _microbot_format_slack_message_as_microbot_post($msg) {
 function _slack_get_im_by_username($token, $username) {
     $slack = new Slack($token);
     $user = _slack_get_user_by_username($token, $username);
-    $resp = $slack->call('im.list', []);
+    $resp = _slack_call_api_cached($slack, 'im.list', []);
     if (!$resp['ok']) return false;
 
     foreach ($resp['ims'] as $im) {
@@ -292,6 +289,28 @@ function _slack_get_im_by_username($token, $username) {
     }
 
     return false;
+}
+
+/**
+ * Calls a Slack API method with the given arguments, caching the result for a certain time period.
+ * @param object $slack - Slack API instance
+ * @param string $method - Slack method name
+ * @param object $args - arguments for method
+ * @param int $ttl - number of seconds to cache response for
+ * @return object
+ */
+function _slack_call_api_cached($slack, $method, $args, $ttl = MICROBOT_TTL_1_MINUTE) {
+    if (!is_a($slack, 'Slack')) {
+        throw new Exception(__FUNCTION__ . " was called with an invalid Slack instance; did you forget to pass one in?");
+    }
+    $cache_filename = MICROBOT_TMP_DIR . "/slack." . $method . "." . sha1(json_encode($args)) . ".ttl" . $ttl . ".json";
+    if (file_exists($cache_filename) && (time() - filemtime($cache_filename)) < $ttl) {
+        return json_decode(file_get_contents($cache_filename), true);
+    }
+
+    $resp = $slack->call($method, $args);
+    file_put_contents($cache_filename, json_encode($resp));
+    return $resp;
 }
 
 /**
@@ -306,7 +325,7 @@ function _slack_get_user_by_username($token, $username) {
     }
 
     $slack = new Slack($token);
-    $resp = $slack->call('users.list', []);
+    $resp = _slack_call_api_cached($slack, 'users.list', []);
     if (!$resp['ok']) return null;
 
     $user = null;
