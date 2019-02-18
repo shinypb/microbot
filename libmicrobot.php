@@ -110,7 +110,7 @@ function microbot_format_msg_as_post($msg) {
 
 function microbot_format_image_link($username, $msg) {
     $url = microbot_format_permalink($username, $msg['ts'], true);
-    return "<a class=\"image\" href=\"" . htmlentities($url) . "\"><img src=\"" . htmlentities($url) . "\" alt=\"" . htmlentities($msg['text']) . "\"></a>";
+    return "<a class=\"image\" href=\"" . htmlentities($url) . "\"><img style=\"max-width: 100%;\" src=\"" . htmlentities($url) . "\" alt=\"" . htmlentities($msg['text']) . "\"></a>";
 }
 
 function microbot_get_post_by_username($token, $username, $ts) {
