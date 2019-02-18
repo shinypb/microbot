@@ -53,13 +53,20 @@ header('content-type: text/html');
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" href="/microbot/style.css">
         <meta property="og:url"                content="<?php emit(microbot_format_permalink($username, $post['ts'])); ?>">
+				<meta property="twitter:url"                content="<?php emit(microbot_format_permalink($username, $post['ts'])); ?>">
         <meta property="og:type"               content="article">
         <meta property="og:title"        content="<?php emit($post[text]);?>">
+				<meta property="twitter:title"        content="<?php emit($post[text]);?>">
         <meta property="og:description" content="@<?php emit($username); ?>'s microblog">
+				<meta property="twitter:description" content="@<?php emit($username); ?>'s microblog">
         <?php if ($post['media_type']) { ?>
-        <meta property="og:image"              content="<?php echo microbot_format_permalink($username, $msg['ts'], true); ?>">
+				<meta property="twitter:card" content="summary_large_image">
+        <meta property="og:image"              content="<?php echo microbot_format_permalink($username, $post['ts'], true); ?>">
+				<meta property="twitter:image"              content="<?php echo microbot_format_permalink($username, $post['ts'], true); ?>">
         <meta property="og:image:width" content="<?php emit($post['media_w']); ?>">
         <meta property="og:image:height" content="<?php emit($post['media_h']); ?>">
+				<?php } else { ?>
+					<meta property="twitter:card" content="summary">
         <?php } ?>
 	</head>
 	<body>
