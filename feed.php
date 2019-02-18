@@ -35,7 +35,7 @@ echo '<?xml version="1.0" encoding="UTF-8" ?>';
             <title></title>
             <description><![CDATA[
                 <?php echo microbot_format_text_as_html($post['text']); ?>
-                <?php if ($post['media_type']) echo "<br>" . microbot_format_image_link($username, $post); ?>
+                <?php if ($post['media_type']) echo "<br>" . microbot_html_image_link($username, $post); ?>
             ]]></description>
             <?php if ($post['media_type']) { ?>
                 <media:content 

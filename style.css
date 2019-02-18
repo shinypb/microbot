@@ -25,6 +25,7 @@ article a.image {
 }
 
 article a.image img {
+	height: auto;
     max-width: 100%;
 }
 
