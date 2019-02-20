@@ -51,7 +51,8 @@ function _get_size_class_for_post($post) {
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="icon" href="<?php echo MICROBOT_BASE_URL ?>/favicon.png">
 		<link rel="stylesheet" href="<?php echo MICROBOT_BASE_URL ?>/style.css">
-        <?php if ($username === 'shinypb') { ?><link href="https://micro.blog/shinypb" rel="me"><?php } ?>
+		<link rel="alternate" type="application/atom+xml" title="@<?php echo htmlentities($username);?>'s microblog" href="<?php echo MICROBOT_BASE_URL ?>/user/shinypb.xml">
+		<?php if ($username === 'shinypb') { ?><link href="https://micro.blog/shinypb" rel="me"><?php } ?>
 	</head>
 	<body>
 		<article class="user_profile">
